@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="bs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kartoteka pacijenata · Dr Kunić</title>
+  <link rel="stylesheet" href="kartoteka.css">
+</head>
+<body>
+  <div class="demo-banner">DEMO PRIKAZ · Podaci su izmišljeni · Ne unosite stvarne podatke pacijenata</div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="app-brand" href="index.html" aria-label="Nazad na web stranicu">
+        <img class="brand-mark" src="images/kartoteka-logo.png" alt="Logo ordinacije Dr Kunić Tarik">
+        <span><strong>Dr Kunić</strong><small>Ordinacija</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Glavna navigacija">
+        <a class="active" href="#pocetna"><span>⌂</span> Početna</a>
+        <a href="kartoteka.html"><span>♙</span> Kartoteka</a>
+        <a href="#"><span>▣</span> Termini</a>
+        <a href="#"><span>◫</span> Finansije</a>
+        <a href="#"><span>⚙</span> Postavke</a>
+      </nav>
+      <div class="sidebar-footer">
+        <img class="user-avatar" src="images/kartoteka-logo.png" alt="">
+        <div><strong>Dr Tarik Kunić</strong><small>Administrator</small></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="mobile-menu" type="button" aria-label="Otvori meni">☰</button>
+        <div><p class="eyebrow" id="topbar-eyebrow">DNEVNI PREGLED</p><h1 id="topbar-title">Raspored ordinacije</h1></div>
+        <div class="top-actions">
+          <button class="icon-button" type="button" aria-label="Obavijesti">◌<span></span></button>
+          <button class="primary-button" type="button" id="new-patient">＋ Novi pacijent</button>
+        </div>
+      </header>
+
+      <section class="dashboard" id="dashboard">
+        <div class="dashboard-heading"><div><p class="eyebrow">DNEVNI PREGLED</p><h2 id="dashboard-date"></h2><p>Termini će se kasnije povezati s kalendarom web stranice.</p></div><button class="secondary-button" id="dashboard-today" type="button">Danas</button></div>
+        <div class="dashboard-grid"><article class="card calendar-card"><div class="calendar-toolbar"><button id="calendar-prev" type="button" aria-label="Prethodni mjesec">‹</button><h3 id="calendar-month"></h3><button id="calendar-next" type="button" aria-label="Sljedeći mjesec">›</button></div><div class="calendar-weekdays"><span>Pon</span><span>Uto</span><span>Sri</span><span>Čet</span><span>Pet</span><span>Sub</span><span>Ned</span></div><div class="calendar-days" id="calendar-days"></div></article><aside class="card day-agenda"><div class="card-heading"><h3>Termini</h3><span id="agenda-count"></span></div><div id="agenda-list"></div><p class="calendar-note">Ovdje će automatski dolaziti online narudžbe nakon povezivanja kalendara.</p></aside></div>
+        <article class="daily-message"><div><span>✦</span><p class="eyebrow">MISAO ZA DAN</p><strong id="daily-message-text"></strong></div><button id="next-daily-message" type="button">Nova poruka ↻</button></article>
+        <div class="dashboard-grid lower"><article class="card daily-notes"><div class="card-heading"><h3>Napomene za dan</h3><button id="save-day-note" type="button">Sačuvaj</button></div><textarea id="day-note" rows="6" placeholder="Važne napomene za današnji rad, pacijente ili organizaciju…"></textarea><span id="day-note-state"></span></article><article class="card task-card"><div class="card-heading"><h3>Dnevne obaveze</h3><span id="task-progress"></span></div><form id="task-form"><input id="task-input" maxlength="100" placeholder="Dodaj obavezu…"><button class="primary-button" type="submit">Dodaj</button></form><div class="task-list" id="task-list"></div></article></div>
+      </section>
+      <section class="workspace" id="workspace">
+        <aside class="patient-panel">
+          <label class="search"><span>⌕</span><input id="patient-search" type="search" placeholder="Pretraži pacijente…"></label>
+          <div class="patient-filter"><strong>Svi pacijenti</strong><span id="patient-count">4 pacijenta</span></div>
+          <div class="patient-list" id="patient-list"></div>
+        </aside>
+
+        <section class="record" id="patient-record">
+          <div class="patient-header">
+            <div class="patient-identity">
+              <div class="large-avatar" id="patient-avatar">AM</div>
+              <div><div class="status-row"><span class="status">Aktivan pacijent</span><span class="patient-id" id="patient-id">#000124</span></div><h2 id="patient-name">Amina (Haris) Memić</h2><p id="patient-meta">34 godine · Žensko · Posljednja posjeta 14.09.2026.</p></div>
+            </div>
+            <div class="record-actions"><button class="secondary-button" type="button">✎ Uredi podatke</button><button class="more-button" type="button">•••</button></div>
+          </div>
+
+          <div class="alert-card"><span>!</span><div><strong>Medicinska napomena</strong><p id="patient-alert">Alergija na penicilin. Obratiti pažnju prije propisivanja terapije.</p></div></div>
+
+          <div class="tabs" role="tablist">
+            <button class="active" data-tab="pregled" role="tab">Pregled</button>
+            <button data-tab="anamneza" role="tab">Anamneza <span id="anamnesis-badge">!</span></button>
+            <button data-tab="zubi" role="tab">Status zuba</button>
+            <button data-tab="parodont" role="tab">Parodontologija <span id="perio-badge">!</span></button>
+            <button data-tab="botox" role="tab">Botox <span id="botox-badge">!</span></button>
+            <button data-tab="posjete" role="tab">Nalaz <span>3</span></button>
+            <button data-tab="dokumenti" role="tab">Dokumenti <span>2</span></button>
+          </div>
+
+          <div class="tab-content active" id="pregled">
+            <div class="summary-grid">
+              <article class="card contact-card"><div class="card-heading"><h3>Osnovni podaci</h3><button type="button">Uredi</button></div><dl><div><dt>Telefon</dt><dd id="patient-phone">+387 61 000 124</dd></div><div><dt>E-mail</dt><dd id="patient-email">amina.memic@example.com</dd></div><div><dt>Datum rođenja</dt><dd id="patient-birth">12. april 1992.</dd></div><div><dt>Ime oca</dt><dd id="patient-father">Haris</dd></div><div><dt>Adresa</dt><dd id="patient-address">Demo adresa 124, Sarajevo</dd></div></dl></article>
+              <article class="card next-visit"><div class="card-heading"><h3>Naredni termin</h3><button type="button">Otvori kalendar</button></div><div class="appointment"><div class="date-box"><strong>24</strong><span>SEP</span></div><div><strong>Kontrolni pregled</strong><p>Četvrtak · 10:30–11:00</p><span class="confirmed">Potvrđeno</span></div></div></article>
+            </div>
+            <div class="summary-grid lower">
+              <article class="card"><div class="card-heading"><h3>Plan terapije</h3><button type="button">＋ Dodaj stavku</button></div><ul class="treatment-list"><li><span class="done">✓</span><div><strong>Profesionalno čišćenje</strong><p>Završeno · 14.09.2026.</p></div><b>80 KM</b></li><li><span class="progress">2</span><div><strong>Kompozitni ispun · zub 26</strong><p>Planirano · 24.09.2026.</p></div><b>100 KM</b></li><li><span class="waiting">3</span><div><strong>Kontrolni pregled</strong><p>Na čekanju</p></div><b>—</b></li></ul></article>
+              <article class="card"><div class="card-heading"><h3>Historija posjeta</h3><button type="button">Vidi sve</button></div><div class="timeline"><div><span></span><p><strong>14. sep 2026.</strong>Pregled i uklanjanje kamenca<small>Dr Tarik Kunić</small></p></div><div><span></span><p><strong>03. mar 2026.</strong>Kontrolni pregled<small>Dr Tarik Kunić</small></p></div><div><span></span><p><strong>18. nov 2025.</strong>Kompozitni ispun · zub 16<small>Dr Tarik Kunić</small></p></div></div></article>
+            </div>
+          </div>
+
+          <div class="tab-content" id="zubi"><article class="card odontogram-card"><div class="odontogram-heading"><div><p class="eyebrow">DENTALNI STATUS</p><h3>Prikaz vilice</h3><p>Odaberi stanje, zatim klikni na zub da ga označiš.</p></div><div class="tooth-legend"><span><i class="healthy"></i>Zdrav</span><span><i class="caries"></i>Karijes</span><span><i class="treated"></i>Liječen</span><span><i class="missing"></i>Nedostaje</span></div></div><div class="condition-picker"><button class="active" data-condition="caries" type="button"><i></i> Karijes</button><button data-condition="treated" type="button"><i></i> Liječen</button><button data-condition="missing" type="button"><i></i> Nedostaje</button><button data-condition="healthy" type="button"><i></i> Zdrav</button></div><div class="jaw-wrap"><div class="jaw-label"><span>Gornja vilica</span><small>Desno</small><small>Lijevo</small></div><div class="teeth-row upper" id="upper-jaw"></div><div class="jaw-divider"><span>SREDIŠNJA LINIJA</span></div><div class="teeth-row lower" id="lower-jaw"></div><div class="jaw-label bottom"><span>Donja vilica</span><small>Desno</small><small>Lijevo</small></div></div><div class="selected-tooth" id="selected-tooth"><span class="tooth-preview">—</span><div><small>ODABRANI ZUB</small><strong>Odaberite zub na prikazu</strong><p>Njegovo stanje i bilješka prikazat će se ovdje.</p></div><label>Bilješka<textarea id="tooth-note" rows="2" placeholder="Unesite kliničku bilješku…" disabled></textarea></label></div><div class="installment-panel"><div class="installment-title"><div><p class="eyebrow">PLAĆANJE ZA ODABRANI ZUB</p><h3>Plan plaćanja na rate</h3></div><strong id="installment-status">Odaberite zub</strong></div><div class="installment-fields"><label>Ukupan iznos (KM)<input id="tooth-price" type="number" min="0" step="1" disabled></label><label>Broj rata<input id="installment-total" type="number" min="1" max="36" disabled></label><label>Plaćeno rata<input id="installment-paid" type="number" min="0" max="36" disabled></label><div class="remaining-box"><small>PREOSTALO</small><b id="installment-remaining">—</b><span id="installment-amount">—</span></div></div></div></article></div>
+          <div class="tab-content" id="posjete"><div class="visits-layout"><form class="card visit-form" id="visit-form"><div class="visit-heading"><div><p class="eyebrow">NOVI NALAZ</p><h3>Klinička posjeta</h3><p>Sažet obrazac za unos pregleda, terapije i uputa pacijentu.</p></div><span id="visit-state">Novi zapis</span></div><div class="visit-meta"><label>Datum<input name="date" type="date" required></label><label>Vrijeme (24 sata)<input name="time" type="time" step="60" lang="bs"></label><label>Vrsta posjete<select name="type"><option>Kontrolni pregled</option><option>Prvi pregled</option><option>Hitna posjeta</option><option>Terapijski zahvat</option><option>Higijenski tretman</option></select></label></div><label>Razlog dolaska / tegobe<textarea name="reason" rows="2" placeholder="Glavna tegoba ili razlog dolaska…"></textarea></label><label>Klinički nalaz<textarea name="findings" rows="3" placeholder="Pregled usne šupljine, zuba i mekih tkiva…"></textarea></label><div class="visit-split"><label>Dijagnoza<textarea name="diagnosis" rows="3" placeholder="Radna ili konačna dijagnoza…"></textarea></label><label>Izvedena terapija<textarea name="treatment" rows="3" placeholder="Zahvat, materijal, anestezija ili preporučeni postupak…"></textarea></label></div><div class="visit-split"><label>Preporuke pacijentu<textarea name="recommendations" rows="2" placeholder="Upute za njegu, lijekove ili prehranu…"></textarea></label><label>Naredna kontrola<input name="nextVisit" type="date"></label></div><div class="visit-actions"><span id="visit-saved"></span><button class="secondary-button" id="print-visit" type="button" disabled>🖨 Štampaj nalaz</button><button class="primary-button" type="submit">Sačuvaj posjetu</button></div></form><aside class="card visit-history"><div class="card-heading"><h3>Historija posjeta</h3><button type="button" id="new-visit">＋ Novi nalaz</button></div><div id="visit-history-list"></div></aside></div><article class="printable-visit" id="printable-visit" aria-hidden="true"></article></div>
+          <div class="tab-content" id="dokumenti"><article class="card placeholder-card"><span>▧</span><h3>Dokumenti i snimci</h3><p>Prostor za rendgenske snimke, saglasnosti, fotografije i drugu dokumentaciju.</p></article></div>
+          <div class="tab-content" id="anamneza">
+            <form class="card anamnesis-card" id="anamnesis-form">
+              <div class="anamnesis-heading"><div><p class="eyebrow">PRVI DOLAZAK PACIJENTA</p><h3>Medicinska anamneza</h3><p>Potvrdni odgovori automatski se izdvajaju u medicinsku napomenu.</p></div><span id="anamnesis-state">Nije popunjeno</span></div>
+              <div class="anamnesis-question open-question"><label>1. Da li bolujete od neke bolesti? Ako da, od koje?</label><textarea name="diseases" rows="2" placeholder="Upišite dijagnoze ili ostavite prazno"></textarea></div>
+              <div class="anamnesis-question open-question"><label>2. Da li uzimate lijekove, redovnu ili povremenu terapiju?</label><textarea name="medications" rows="2" placeholder="Naziv lijeka, doza i učestalost"></textarea></div>
+              <div class="anamnesis-grid">
+                <fieldset class="anamnesis-question"><legend>3. Imate li kardiovaskularno oboljenje?</legend><p>Visok pritisak, angina pektoris, srčani infarkt i slično.</p><div class="yes-no"><label><input type="radio" name="cardio" value="Da"> Da</label><label><input type="radio" name="cardio" value="Ne" checked> Ne</label></div><input class="detail-input" name="cardioDetail" placeholder="Koje oboljenje?"></fieldset>
+                <fieldset class="anamnesis-question"><legend>4. Jeste li se posljednje dvije godine liječili u bolnici?</legend><div class="yes-no"><label><input type="radio" name="hospital" value="Da"> Da</label><label><input type="radio" name="hospital" value="Ne" checked> Ne</label></div><input class="detail-input" name="hospitalDetail" placeholder="Razlog i datum liječenja"></fieldset>
+                <fieldset class="anamnesis-question"><legend>5. Imate li ugrađen pacemaker ili vještačke zaliske?</legend><div class="yes-no"><label><input type="radio" name="pacemaker" value="Da"> Da</label><label><input type="radio" name="pacemaker" value="Ne" checked> Ne</label></div><input class="detail-input" name="pacemakerDetail" placeholder="Detalji i datum ugradnje"></fieldset>
+                <fieldset class="anamnesis-question"><legend>6. Imate li šećernu bolest (dijabetes)?</legend><div class="yes-no"><label><input type="radio" name="diabetes" value="Da"> Da</label><label><input type="radio" name="diabetes" value="Ne" checked> Ne</label></div><input class="detail-input" name="diabetesDetail" placeholder="Tip i terapija"></fieldset>
+                <fieldset class="anamnesis-question"><legend>7. Imate li alergije na lijekove, hranu ili drugo?</legend><div class="yes-no"><label><input type="radio" name="allergy" value="Da"> Da</label><label><input type="radio" name="allergy" value="Ne" checked> Ne</label></div><input class="detail-input" name="allergyDetail" placeholder="Navedite alergene i reakciju"></fieldset>
+                <fieldset class="anamnesis-question"><legend>8. Imate li neku infektivnu bolest?</legend><p>Hepatitis, HIV ili druga infektivna bolest.</p><div class="yes-no"><label><input type="radio" name="infectious" value="Da"> Da</label><label><input type="radio" name="infectious" value="Ne" checked> Ne</label></div><input class="detail-input" name="infectiousDetail" placeholder="Navedite dijagnozu"></fieldset>
+                <fieldset class="anamnesis-question"><legend>9. Jeste li ikada terapijski zračeni protiv tumora?</legend><div class="yes-no"><label><input type="radio" name="radiation" value="Da"> Da</label><label><input type="radio" name="radiation" value="Ne" checked> Ne</label></div><input class="detail-input" name="radiationDetail" placeholder="Područje i period terapije"></fieldset>
+                <fieldset class="anamnesis-question"><legend>10. Jeste li imali operaciju na čeljustima ili zubima?</legend><div class="yes-no"><label><input type="radio" name="surgery" value="Da"> Da</label><label><input type="radio" name="surgery" value="Ne" checked> Ne</label></div><input class="detail-input" name="surgeryDetail" placeholder="Vrsta zahvata i datum"></fieldset>
+                <fieldset class="anamnesis-question"><legend>11. Jeste li već primali lokalnu anesteziju za zube?</legend><div class="yes-no"><label><input type="radio" name="anesthesia" value="Da"> Da</label><label><input type="radio" name="anesthesia" value="Ne" checked> Ne</label></div></fieldset>
+                <fieldset class="anamnesis-question"><legend>12. Jeste li imali komplikacija pri lokalnoj anesteziji?</legend><div class="yes-no"><label><input type="radio" name="anesthesiaIssue" value="Da"> Da</label><label><input type="radio" name="anesthesiaIssue" value="Ne" checked> Ne</label></div><input class="detail-input" name="anesthesiaIssueDetail" placeholder="Opišite komplikaciju"></fieldset>
+                <fieldset class="anamnesis-question"><legend>13. Za žene: jeste li trudni?</legend><div class="yes-no"><label><input type="radio" name="pregnant" value="Da"> Da</label><label><input type="radio" name="pregnant" value="Ne" checked> Ne</label><label><input type="radio" name="pregnant" value="Nije primjenjivo"> N/P</label></div><input class="detail-input" name="pregnantDetail" placeholder="Planirani termin poroda"></fieldset>
+              </div>
+              <label class="anamnesis-confirm"><input type="checkbox" name="confirmed" required> Pacijent potvrđuje da su uneseni podaci tačni i potpuni.</label>
+              <div class="anamnesis-actions"><span id="anamnesis-saved"></span><button class="primary-button" type="submit">Sačuvaj anamnezu i ažuriraj napomenu</button></div>
+            </form>
+          </div>
+          <div class="tab-content" id="parodont"><form class="card perio-card" id="perio-form"><div class="perio-heading"><div><p class="eyebrow">PARODONTOLOŠKI STATUS</p><h3>Pregled parodonta</h3><p>Unesite nalaz mekih tkiva te vrijednosti po zubu. Podaci se vode za odabranog pacijenta.</p></div><span id="perio-state">Nije popunjeno</span></div><div class="perio-overview"><label>Oboljenje mekih tkiva<select name="tissues"><option value="">Odaberite nalaz</option><option>Bez znakova upale</option><option>Blaga upala</option><option>Umjerena upala</option><option>Izražena upala</option></select></label><label>Nepravilnosti zuba i vilice<select name="irregularity"><option value="Ne">Ne</option><option value="Da">Da</option></select></label><label>Zubne proteze<select name="dentures"><option value="Ne">Ne</option><option value="Da">Da</option></select></label><label>Oralna higijena<select name="hygiene"><option value="Dobra">Dobra</option><option value="Loša">Loša</option></select></label><label>Parodontopatija<select name="periodontitis"><option value="Ne">Ne</option><option value="Da">Da</option></select></label></div><section class="perio-measurement"><div class="perio-section-heading"><div><h4>Indeks krvarenja papile (PBI)</h4><p>Vrijednost 0–4 za svaki zub</p></div><strong id="pbi-score">PBI —</strong></div><div class="perio-grid" id="pbi-grid"></div></section><section class="perio-measurement"><div class="perio-section-heading"><div><h4>Dubina sondiranja</h4><p>Najveća izmjerena dubina u milimetrima</p></div><strong>mm</strong></div><div class="perio-grid" id="depth-grid"></div></section><section class="perio-measurement"><div class="perio-section-heading"><div><h4>Mobilnost zuba</h4><p>Vrijednost 0–3 za svaki zub</p></div><strong>0–3</strong></div><div class="perio-grid" id="mobility-grid"></div></section><label class="perio-note">Klinička napomena<textarea name="note" rows="3" placeholder="Nalaz, preporuka ili plan kontrole…"></textarea></label><div class="perio-actions"><span id="perio-saved"></span><button class="primary-button" type="submit">Sačuvaj parodontološki status</button></div></form></div>
+          <div class="tab-content" id="botox"><form class="card botox-card" id="botox-form"><div class="botox-heading"><div><p class="eyebrow">ESTETSKA MEDICINA</p><h3>Botox tretman</h3><p>Klinička evidencija aplikacije, korištenog preparata i plana kontrole.</p></div><span id="botox-state">Nije evidentirano</span></div><div class="botox-meta"><label>Datum tretmana<input name="date" type="date" required></label><label>Vrsta tretmana<select name="type"><option>Botox · estetski tretman</option><option>Botox · bruksizam / maseter</option><option>Kontrolni pregled</option></select></label><label>Ukupno jedinica<input name="units" type="number" min="0" step="1" placeholder="npr. 32"></label></div><div class="botox-product"><label>Preparat<input name="product" placeholder="Naziv preparata"></label><label>LOT / serijski broj<input name="lot" placeholder="LOT broj"></label><label>Rok trajanja<input name="expiry" type="date"></label></div><fieldset class="botox-areas"><legend>Regije aplikacije</legend><div><label><input name="areas" type="checkbox" value="Čelo"> Čelo</label><label><input name="areas" type="checkbox" value="Glabela"> Glabela</label><label><input name="areas" type="checkbox" value="Periorbitalno"> Periorbitalno</label><label><input name="areas" type="checkbox" value="Maseter"> Maseter</label><label><input name="areas" type="checkbox" value="Ostalo"> Ostalo</label></div></fieldset><div class="botox-notes"><label>Plan aplikacije i klinička bilješka<textarea name="note" rows="3" placeholder="Regije, broj jedinica po regiji, posebne napomene…"></textarea></label><label>Kontrola / preporuke<textarea name="followUp" rows="3" placeholder="Planirana kontrola, upute i eventualne reakcije…"></textarea></label></div><label class="botox-consent"><input name="consent" type="checkbox" required> Pacijent je potpisao informisani pristanak za tretman.</label><div class="botox-actions"><span id="botox-saved"></span><button class="primary-button" type="submit">Sačuvaj Botox evidenciju</button></div></form><aside class="botox-summary" id="botox-summary"><span>✦</span><h3>Sačuvani tretman</h3><p>Nakon unosa ovdje će biti prikazan sažetak za odabranog pacijenta.</p></aside></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="patient-dialog"><form id="new-patient-form"><button class="dialog-close" type="button" aria-label="Zatvori">×</button><p class="eyebrow">NOVI ZAPIS</p><h2>Dodaj pacijenta</h2><div class="form-row"><label>Ime i prezime<input name="name" required data-title-case placeholder="npr. Lejla Hadžić"></label><label>Ime oca<input name="father" required data-title-case placeholder="npr. Amir"></label></div><div class="form-row"><label>Telefon<input name="phone" type="tel" required placeholder="+387 61 000 000"></label><label>Datum rođenja (dd.mm.gggg)<input name="birth" type="date" required lang="bs"></label></div><label>E-mail<input name="email" type="text" inputmode="email" value="@gmail.com" placeholder="ime.prezime@gmail.com"></label><label>Adresa<input name="address" data-title-case placeholder="Ulica i grad"></label><label>Medicinska napomena<textarea name="alert" rows="2" placeholder="Alergije, terapija ili važna napomena"></textarea></label><div class="dialog-actions"><button type="button" class="secondary-button dialog-cancel">Odustani</button><button type="submit" class="primary-button">Sačuvaj pacijenta</button></div></form></dialog>
+  <script src="kartoteka.js"></script>
+  <div class="app-toast" id="app-toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -9,10 +9,12 @@ function saveTreatments(){localStorage.setItem('kartoteka-treatments',JSON.strin
 function addTreatment(){const title=window.prompt('Naziv terapije ili zahvata:');if(!title?.trim())return;const amount=window.prompt('Iznos u KM (nije obavezno):','');const items=[...getTreatments()];items.push({title:title.trim(),detail:'Planirano · upravo dodano',price:amount?.trim()?`${amount.trim()} KM`:'—',state:'waiting',marker:String(items.length+1)});allTreatments[selected]=items;saveTreatments();renderTreatments();showToast('Stavka terapije je dodana za odabranog pacijenta.')}
 function titleCase(value=''){return value.toLocaleLowerCase('bs-BA').replace(/(^|[\s-])(\p{L})/gu,(match,prefix,letter)=>`${prefix}${letter.toLocaleUpperCase('bs-BA')}`)}
 function editCurrentPatient(){const patient=patients.find(item=>item.id===selected);if(!patient)return;const name=window.prompt('Ime i prezime:',patient.name);if(name===null||!name.trim())return;const father=window.prompt('Ime oca:',patient.father);if(father===null)return;const phone=window.prompt('Telefon:',patient.phone);if(phone===null)return;const email=window.prompt('E-mail:',patient.email);if(email===null)return;const address=window.prompt('Adresa:',patient.address);if(address===null)return;patient.name=titleCase(name.trim());patient.father=titleCase(father.trim())||'Nije uneseno';patient.phone=phone.trim()||'Nije uneseno';patient.email=email.trim()||'Nije uneseno';patient.address=titleCase(address.trim())||'Nije uneseno';patient.initials=patient.name.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();localStorage.setItem('kartoteka-patients',JSON.stringify(patients));showPatient(patient.id);showToast('Osnovni podaci pacijenta su sačuvani lokalno.')}
-document.addEventListener('DOMContentLoaded',()=>{renderTreatments();document.querySelectorAll('.contact-card .card-heading button,.record-actions .secondary-button').forEach(button=>button.addEventListener('click',editCurrentPatient));document.querySelector('.icon-button').addEventListener('click',()=>showToast('Nema novih obavijesti.'));document.querySelector('.more-button').addEventListener('click',()=>showToast(`Otvoren je zapis pacijenta #${selected}.`));document.querySelector('.next-visit .card-heading button').addEventListener('click',()=>{activateTab('posjete');showToast('Prikazane su posjete i termini pacijenta.')});document.querySelector('.treatment-list').closest('.card').querySelector('.card-heading button').addEventListener('click',addTreatment);document.querySelector('.timeline').closest('.card').querySelector('.card-heading button').addEventListener('click',()=>{activateTab('posjete');showToast('Otvorena je puna historija posjeta.')});document.querySelectorAll('.main-nav a').forEach((link,index)=>link.addEventListener('click',event=>{if(index===1)return;event.preventDefault();if(index===0){activateTab('pregled');showToast('Prikazan je pregled pacijenta.')}else if(index===2){activateTab('posjete');showToast('Prikazani su termini i posjete pacijenta.')}else if(index===3){activateTab('zubi');showToast('Finansije po zahvatu dostupne su uz status zuba.')}else showToast('Postavke će biti dostupne nakon povezivanja sa sigurnim serverom.')}));});
+document.addEventListener('DOMContentLoaded',()=>{renderTreatments();document.querySelectorAll('.contact-card .card-heading button,.record-actions .secondary-button').forEach(button=>button.addEventListener('click',editCurrentPatient));document.querySelector('.icon-button').addEventListener('click',()=>showToast('Nema novih obavijesti.'));document.querySelector('.more-button').addEventListener('click',()=>showToast(`Otvoren je zapis pacijenta #${selected}.`));document.querySelector('.next-visit .card-heading button').addEventListener('click',()=>{openAppointmentDialog();const form=document.querySelector('#appointment-form');form.elements.namedItem('name').value=patients.find(item=>item.id===selected)?.name||'';form.dataset.patientId=selected});document.querySelector('.treatment-list').closest('.card').querySelector('.card-heading button').addEventListener('click',addTreatment);document.querySelector('.timeline').closest('.card').querySelector('.card-heading button').addEventListener('click',()=>{activateTab('posjete');showToast('Otvorena je puna historija posjeta.')});document.querySelectorAll('.main-nav a').forEach((link,index)=>link.addEventListener('click',event=>{if(index===1)return;event.preventDefault();if(index===0){activateTab('pregled');showToast('Prikazan je pregled pacijenta.')}else if(index===2){activateTab('posjete');showToast('Prikazani su termini i posjete pacijenta.')}else if(index===3){activateTab('zubi');showToast('Finansije po zahvatu dostupne su uz status zuba.')}else showToast('Postavke će biti dostupne nakon povezivanja sa sigurnim serverom.')}));});
 
 let dashboardDay=new Date(),dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);
-const dashboardAppointments=[];
+function loadDemoArray(key){try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
+const dashboardAppointments=loadDemoArray('kartoteka-appointments');
+const waitingEntries=loadDemoArray('kartoteka-waiting-list');
 const dailyMessages=['Jedan pažljiv pregled može nekome promijeniti cijeli dan.','Strpljenje, preciznost i osmijeh uvijek ostavljaju trag.','Mali koraci svaki dan donose veliku razliku.','Dobar rad počinje dobrom pripremom.','Vaša stručnost pacijentu donosi sigurnost.','Najbolji rezultat dolazi iz pažnje prema svakom detalju.','Neka današnji rad bude razlog za nečiji mirniji osmijeh.','Organizovan dan ostavlja više prostora za ono važno.','Kvalitet se gradi jednim pažljivo urađenim korakom.','Svaka zdrava navika počinje jednim dobrim savjetom.'];
 let dailyMessageIndex;
 function dateKey(date){const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);return local.toISOString().slice(0,10)}
@@ -22,12 +24,18 @@ function getDayTasks(){const key=`kartoteka-day-tasks-${dateKey(dashboardDay)}`;
 function saveDayTasks(tasks){localStorage.setItem(`kartoteka-day-tasks-${dateKey(dashboardDay)}`,JSON.stringify(tasks))}
 function renderTasks(){const tasks=getDayTasks(),target=document.querySelector('#task-list');target.innerHTML=tasks.map((task,index)=>`<label class="task-item"><input type="checkbox" data-task="${index}" ${task.done?'checked':''}><span>${escapeHtml(task.text)}</span><button type="button" data-remove-task="${index}" aria-label="Ukloni obavezu">×</button></label>`).join('')||'<p class="empty-tasks">Nema obaveza za ovaj dan.</p>';document.querySelector('#task-progress').textContent=tasks.length?`${tasks.filter(task=>task.done).length}/${tasks.length} završeno`:''}
 function renderDayNote(){const key=`kartoteka-day-note-${dateKey(dashboardDay)}`;document.querySelector('#day-note').value=localStorage.getItem(key)||'';document.querySelector('#day-note-state').textContent=''}
-function renderAgenda(){const target=document.querySelector('#agenda-list'),items=dashboardAppointments.filter(item=>item.date===dateKey(dashboardDay)).sort((a,b)=>a.time.localeCompare(b.time));target.innerHTML=items.length?items.map(item=>`<div class="agenda-item"><time>${escapeHtml(item.time)}</time><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.type)}</span></div></div>`).join(''):'<p class="empty-tasks">Nema upisanih termina.</p>';document.querySelector('#agenda-count').textContent=items.length?`${items.length} termina`:''}
-function renderCalendar(){const firstDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),1),lastDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,0),start=(firstDay.getDay()+6)%7,days=[];document.querySelector('#calendar-month').textContent=dashboardMonth.toLocaleDateString('bs-BA',{month:'long',year:'numeric'});for(let index=0;index<start;index++)days.push('<span class="calendar-empty"></span>');for(let day=1;day<=lastDay.getDate();day++){const value=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),day),key=dateKey(value),hasEvents=dashboardAppointments.some(item=>item.date===key),classes=[dateKey(value)===dateKey(dashboardDay)?'selected':'',dateKey(value)===dateKey(new Date())?'today':'',hasEvents?'has-event':''].filter(Boolean).join(' ');days.push(`<button class="${classes}" data-calendar-date="${key}" type="button">${day}</button>`)}document.querySelector('#calendar-days').innerHTML=days.join('')}
-function renderDashboard(){document.querySelector('#dashboard-date').textContent=formatDashboardDate(dashboardDay);renderCalendar();renderAgenda();renderTasks();renderDayNote();renderDailyMessage()}
-function showDashboard(){document.querySelector('#dashboard').hidden=false;document.querySelector('#workspace').hidden=true;document.querySelector('#new-patient').hidden=true;document.querySelector('#topbar-eyebrow').textContent='DNEVNI PREGLED';document.querySelector('#topbar-title').textContent='Raspored ordinacije';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===0));renderDashboard()}
+function renderAgenda(){
+  const target=document.querySelector('#agenda-list');
+  const items=dashboardAppointments.filter(item=>item.date===dateKey(dashboardDay)).sort((a,b)=>a.time.localeCompare(b.time));
+  const statuses=['Zakazan','Potvrđen','Došao','Završen','Nije došao','Otkazan'];
+  target.innerHTML=items.length?items.map(item=>`<div class="agenda-item"><time>${escapeHtml(item.time)}</time><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.type)} · ${Number(item.duration)||30} min</span><select aria-label="Status termina za ${escapeHtml(item.name)}" data-appointment-status="${escapeHtml(item.id)}">${statuses.map(status=>`<option ${item.status===status?'selected':''}>${status}</option>`).join('')}</select></div></div>`).join(''):'<p class="empty-tasks">Nema upisanih termina.</p>';
+  document.querySelector('#agenda-count').textContent=items.length?`${items.length} termina`:'';
+}
+function renderCalendar(){const firstDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),1),lastDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,0),start=(firstDay.getDay()+6)%7,days=[];document.querySelector('#calendar-month').textContent=dashboardMonth.toLocaleDateString('bs-BA',{month:'long',year:'numeric'});for(let index=0;index<start;index++)days.push('<span class="calendar-empty"></span>');for(let day=1;day<=lastDay.getDate();day++){const value=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),day),key=dateKey(value),hasEvents=dashboardAppointments.some(item=>item.date===key&&item.status!=='Otkazan'),classes=[dateKey(value)===dateKey(dashboardDay)?'selected':'',dateKey(value)===dateKey(new Date())?'today':'',hasEvents?'has-event':''].filter(Boolean).join(' ');days.push(`<button class="${classes}" data-calendar-date="${key}" type="button">${day}</button>`)}document.querySelector('#calendar-days').innerHTML=days.join('')}
+function renderDashboard(){document.querySelector('#dashboard-date').textContent=formatDashboardDate(dashboardDay);renderCalendar();renderAgenda();renderWaitlist();renderTasks();renderDayNote();renderDailyMessage()}
+function showDashboard(navIndex=0){document.querySelector('#dashboard').hidden=false;document.querySelector('#workspace').hidden=true;document.querySelector('#new-patient').hidden=true;document.querySelector('#topbar-eyebrow').textContent='DNEVNI PREGLED';document.querySelector('#topbar-title').textContent='Raspored ordinacije';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===navIndex));renderDashboard()}
 function showWorkspace(){document.querySelector('#dashboard').hidden=true;document.querySelector('#workspace').hidden=false;document.querySelector('#new-patient').hidden=false;document.querySelector('#topbar-eyebrow').textContent='E-KARTOTEKA';document.querySelector('#topbar-title').textContent='Pacijenti';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===1))}
-document.querySelector('.main-nav').addEventListener('click',event=>{const link=event.target.closest('a');if(!link)return;setMobileMenu(false);const links=[...document.querySelectorAll('.main-nav a')],index=links.indexOf(link);if(index===0||index===1){event.preventDefault();event.stopPropagation();if(index===0)showDashboard();else showWorkspace()}},true);
+document.querySelector('.main-nav').addEventListener('click',event=>{const link=event.target.closest('a');if(!link)return;setMobileMenu(false);const links=[...document.querySelectorAll('.main-nav a')],index=links.indexOf(link);if(index<=4){event.preventDefault();event.stopPropagation();if(index===0)showDashboard();if(index===1)showWorkspace();if(index===2){showDashboard(2);document.querySelector('.calendar-card').scrollIntoView({behavior:'smooth',block:'start'})}if(index===3){showDashboard(3);document.querySelector('#lista-cekanja').scrollIntoView({behavior:'smooth',block:'start'})}if(index===4){showWorkspace();activateTab('zubi')}}},true);
 document.querySelector('#calendar-prev').addEventListener('click',()=>{dashboardMonth=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()-1,1);renderCalendar()});
 document.querySelector('#calendar-next').addEventListener('click',()=>{dashboardMonth=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,1);renderCalendar()});
 document.querySelector('#dashboard-today').addEventListener('click',()=>{dashboardDay=new Date();dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);renderDashboard()});
@@ -91,11 +99,25 @@ const count=document.querySelector('#patient-count');
 let selected=patients[0].id;
 
 function renderList(query=''){
-  const filtered=patients.filter(p=>`${p.name} ${p.detail}`.toLowerCase().includes(query.toLowerCase()));
+  const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const term=normalized(query);
+  const filtered=patients.filter(p=>normalized(`${p.name} ${p.father} ${p.detail} ${p.phone} ${p.email}`).includes(term));
   count.textContent=`${filtered.length} ${filtered.length===1?'pacijent':'pacijenta'}`;
-  list.innerHTML=filtered.map(p=>`<button class="patient-item ${p.id===selected?'active':''}" data-id="${p.id}"><span class="avatar">${p.initials}</span><span><strong>${displayName(p)}</strong><small>${p.detail}</small></span><span>›</span></button>`).join('')||'<p style="padding:18px;color:#73847f;font-size:12px">Nema rezultata.</p>';
+  list.innerHTML=filtered.map(p=>`<button class="patient-item ${p.id===selected?'active':''}" data-id="${escapeHtml(p.id)}"><span class="avatar">${escapeHtml(p.initials)}</span><span><strong>${escapeHtml(displayName(p))}</strong><small>${escapeHtml(p.detail)}</small></span><span>›</span></button>`).join('')||'<p style="padding:18px;color:#73847f;font-size:12px">Nema rezultata.</p>';
 }
 function displayName(patient){const parts=patient.name.trim().split(/\s+/),first=parts.shift(),last=parts.join(' ');return `${first} (${patient.father}) ${last}`.trim()}
+function renderNextVisit(){
+  const patient=patients.find(item=>item.id===selected);if(!patient)return;
+  const appointment=dashboardAppointments.filter(item=>(item.patientId===patient.id||(!item.patientId&&item.name.toLowerCase()===patient.name.toLowerCase()))&&item.date>=dateKey(new Date())&&!['Završen','Nije došao','Otkazan'].includes(item.status)).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))[0];
+  const date=appointment?new Date(`${appointment.date}T12:00:00`):null;
+  document.querySelector('#next-visit-day').textContent=date?String(date.getDate()):'—';
+  document.querySelector('#next-visit-month').textContent=date?date.toLocaleDateString('bs-BA',{month:'short'}).toUpperCase():'';
+  document.querySelector('#next-visit-type').textContent=appointment?.type||'Nema zakazanog termina';
+  const end=appointment?minutesFromTime(appointment.time)+(Number(appointment.duration)||30):0;
+  const endTime=`${String(Math.floor(end/60)).padStart(2,'0')}:${String(end%60).padStart(2,'0')}`;
+  document.querySelector('#next-visit-time').textContent=appointment?`${date.toLocaleDateString('bs-BA',{weekday:'long'})} · ${appointment.time}–${endTime}`:'Termin možete dodati iz kartona.';
+  document.querySelector('#next-visit-status').textContent=appointment?.status||'';
+}
 function showPatient(id){
   const p=patients.find(item=>item.id===id);if(!p)return;selected=id;
   const fields={
@@ -105,7 +127,7 @@ function showPatient(id){
   Object.entries(fields).forEach(([key,value])=>document.getElementById(key).textContent=value);
   renderList(document.querySelector('#patient-search').value);
   selectedTooth=null;loadToothData();renderOdontogram();resetToothPanel();
-  loadAnamnesis();loadPeriodontal();loadBotox();renderTreatments();loadVisits();
+  loadAnamnesis();loadPeriodontal();loadBotox();renderTreatments();loadVisits();renderNextVisit();
 }
 renderList();
 document.querySelector('#patient-search').addEventListener('input',e=>renderList(e.target.value));
@@ -217,3 +239,70 @@ document.querySelectorAll('.condition-picker button').forEach(button=>button.add
 document.querySelector('.jaw-wrap').addEventListener('click',event=>{const button=event.target.closest('[data-tooth]');if(!button)return;const number=Number(button.dataset.tooth),old=toothData[number]||{};toothData[number]={condition:toothCondition,note:old.note||'',price:old.price||0,total:old.total||1,paid:old.paid||0};saveToothData();showTooth(number)});
 document.querySelector('#tooth-note').addEventListener('input',event=>{if(!selectedTooth)return;toothData[selectedTooth].note=event.target.value;saveToothData()});
 ['tooth-price','installment-total','installment-paid'].forEach(id=>document.getElementById(id).addEventListener('input',event=>{if(!selectedTooth)return;const keys={'tooth-price':'price','installment-total':'total','installment-paid':'paid'};toothData[selectedTooth][keys[id]]=Math.max(0,Number(event.target.value)||0);if(id==='installment-paid'&&toothData[selectedTooth].paid>toothData[selectedTooth].total)toothData[selectedTooth].paid=toothData[selectedTooth].total;saveToothData();updateInstallmentSummary()}));
+
+function saveAppointments(){localStorage.setItem('kartoteka-appointments',JSON.stringify(dashboardAppointments))}
+function saveWaitingEntries(){localStorage.setItem('kartoteka-waiting-list',JSON.stringify(waitingEntries))}
+function renderWaitlist(){
+  const target=document.querySelector('#waiting-list');
+  const entries=[...waitingEntries].sort((a,b)=>(a.status==='Čeka'?0:a.status==='Pozvano'?1:2)-(b.status==='Čeka'?0:b.status==='Pozvano'?1:2)||Number(b.priority==='hitno')-Number(a.priority==='hitno'));
+  document.querySelector('#waiting-count').textContent=`${waitingEntries.filter(item=>item.status==='Čeka').length} čeka · ${waitingEntries.filter(item=>item.status==='Pozvano').length} pozvano`;
+  target.innerHTML=entries.length?entries.map(item=>`<article class="waiting-item"><div><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.reason)}</p><div class="waiting-tags"><span class="waiting-status">${escapeHtml(item.status)}</span>${item.priority==='hitno'?'<span class="waiting-urgent">Hitno</span>':''}</div></div><div class="waiting-actions">${item.status==='Čeka'?`<button type="button" data-waiting-action="call" data-waiting-id="${escapeHtml(item.id)}">Pozvano</button>`:''}${['Čeka','Pozvano'].includes(item.status)?`<button type="button" data-waiting-action="schedule" data-waiting-id="${escapeHtml(item.id)}">Zakaži</button><button type="button" data-waiting-action="resolve" data-waiting-id="${escapeHtml(item.id)}">Riješeno</button>`:''}</div></article>`).join(''):'<p class="empty-tasks">Lista čekanja je prazna.</p>';
+}
+function minutesFromTime(time){const [hours,minutes]=String(time).split(':').map(Number);return hours*60+minutes}
+function openAppointmentDialog(waitingId=''){
+  const form=document.querySelector('#appointment-form');
+  form.reset();
+  form.dataset.waitingId=waitingId;
+  form.dataset.patientId='';
+  form.elements.date.value=dateKey(dashboardDay);
+  form.elements.time.value='09:00';
+  document.querySelector('#appointment-error').textContent='';
+  document.querySelector('#appointment-patients').innerHTML=patients.map(patient=>`<option value="${escapeHtml(patient.name)}"></option>`).join('');
+  const waiting=waitingEntries.find(item=>item.id===waitingId);
+  if(waiting){form.elements.name.value=waiting.name;form.elements.type.value=waiting.reason}
+  document.querySelector('#appointment-dialog').showModal();
+}
+document.querySelector('#add-appointment').addEventListener('click',()=>openAppointmentDialog());
+document.querySelector('.appointment-close').addEventListener('click',()=>document.querySelector('#appointment-dialog').close());
+document.querySelector('.appointment-cancel').addEventListener('click',()=>document.querySelector('#appointment-dialog').close());
+document.querySelector('#appointment-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  const form=event.currentTarget,data=Object.fromEntries(new FormData(form)),start=minutesFromTime(data.time),end=start+Number(data.duration);
+  const conflict=dashboardAppointments.some(item=>item.date===data.date&&item.status!=='Otkazan'&&start<minutesFromTime(item.time)+(Number(item.duration)||30)&&end>minutesFromTime(item.time));
+  if(conflict){document.querySelector('#appointment-error').textContent='U ovom vremenu već postoji termin. Odaberite drugo vrijeme.';return}
+  const matchingPatient=patients.find(patient=>patient.name.toLowerCase()===data.name.trim().toLowerCase());
+  const appointment={id:crypto.randomUUID(),patientId:form.dataset.patientId||matchingPatient?.id||'',name:data.name.trim(),date:data.date,time:data.time,duration:Number(data.duration),type:data.type.trim(),status:'Zakazan'};
+  dashboardAppointments.push(appointment);
+  saveAppointments();
+  const waiting=waitingEntries.find(item=>item.id===form.dataset.waitingId);
+  if(waiting){waiting.status='Zakazano';waiting.appointmentId=appointment.id;saveWaitingEntries()}
+  dashboardDay=new Date(`${data.date}T12:00:00`);
+  dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);
+  form.closest('dialog').close();
+  renderNextVisit();
+  showDashboard(2);
+  showToast('Termin je sačuvan u ovom pregledniku.');
+});
+document.querySelector('#agenda-list').addEventListener('change',event=>{
+  const field=event.target.closest('[data-appointment-status]');if(!field)return;
+  const appointment=dashboardAppointments.find(item=>item.id===field.dataset.appointmentStatus);if(!appointment)return;
+  appointment.status=field.value;saveAppointments();
+  if(field.value==='Otkazan'){
+    const waiting=waitingEntries.find(item=>item.appointmentId===appointment.id);
+    if(waiting){waiting.status='Čeka';delete waiting.appointmentId;saveWaitingEntries();renderWaitlist()}
+  }
+  renderAgenda();renderCalendar();renderNextVisit();
+});
+document.querySelector('#waiting-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  const form=event.currentTarget,data=Object.fromEntries(new FormData(form));
+  waitingEntries.push({id:crypto.randomUUID(),name:data.name.trim(),reason:data.reason.trim(),priority:data.priority,status:'Čeka'});
+  saveWaitingEntries();form.reset();renderWaitlist();
+});
+document.querySelector('#waiting-list').addEventListener('click',event=>{
+  const button=event.target.closest('[data-waiting-action]');if(!button)return;
+  const entry=waitingEntries.find(item=>item.id===button.dataset.waitingId);if(!entry)return;
+  if(button.dataset.waitingAction==='schedule'){openAppointmentDialog(entry.id);return}
+  entry.status=button.dataset.waitingAction==='call'?'Pozvano':'Riješeno';
+  saveWaitingEntries();renderWaitlist();
+});

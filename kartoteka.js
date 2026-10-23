@@ -27,7 +27,7 @@ function renderCalendar(){const firstDay=new Date(dashboardMonth.getFullYear(),d
 function renderDashboard(){document.querySelector('#dashboard-date').textContent=formatDashboardDate(dashboardDay);renderCalendar();renderAgenda();renderTasks();renderDayNote();renderDailyMessage()}
 function showDashboard(){document.querySelector('#dashboard').hidden=false;document.querySelector('#workspace').hidden=true;document.querySelector('#new-patient').hidden=true;document.querySelector('#topbar-eyebrow').textContent='DNEVNI PREGLED';document.querySelector('#topbar-title').textContent='Raspored ordinacije';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===0));renderDashboard()}
 function showWorkspace(){document.querySelector('#dashboard').hidden=true;document.querySelector('#workspace').hidden=false;document.querySelector('#new-patient').hidden=false;document.querySelector('#topbar-eyebrow').textContent='E-KARTOTEKA';document.querySelector('#topbar-title').textContent='Pacijenti';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===1))}
-document.querySelector('.main-nav').addEventListener('click',event=>{const link=event.target.closest('a'),links=[...document.querySelectorAll('.main-nav a')],index=links.indexOf(link);if(index===0||index===1){event.preventDefault();event.stopPropagation();if(index===0)showDashboard();else showWorkspace()}},true);
+document.querySelector('.main-nav').addEventListener('click',event=>{const link=event.target.closest('a');if(!link)return;setMobileMenu(false);const links=[...document.querySelectorAll('.main-nav a')],index=links.indexOf(link);if(index===0||index===1){event.preventDefault();event.stopPropagation();if(index===0)showDashboard();else showWorkspace()}},true);
 document.querySelector('#calendar-prev').addEventListener('click',()=>{dashboardMonth=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()-1,1);renderCalendar()});
 document.querySelector('#calendar-next').addEventListener('click',()=>{dashboardMonth=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,1);renderCalendar()});
 document.querySelector('#dashboard-today').addEventListener('click',()=>{dashboardDay=new Date();dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);renderDashboard()});
@@ -129,7 +129,22 @@ document.querySelector('#new-patient-form').addEventListener('submit',event=>{
   const patient={id:String(Math.max(...patients.map(p=>Number(p.id)),124)+1).padStart(6,'0'),name,father:titleCase(data.get('father').trim()),initials:name.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase(),detail:`${age} god. · Sarajevo`,meta:`${age} godina · Novi pacijent · Bez prethodnih posjeta`,phone:data.get('phone'),email:email||'Nije uneseno',birth:birth.toLocaleDateString('bs-BA',{day:'2-digit',month:'2-digit',year:'numeric'}),address:titleCase(data.get('address').trim())||'Nije uneseno',alert:data.get('alert')||'Nema evidentiranih alergija ni posebnih medicinskih napomena.'};
   patient.manualAlert=patient.alert;patients.unshift(patient);localStorage.setItem('kartoteka-patients',JSON.stringify(patients));selected=patient.id;showPatient(patient.id);event.currentTarget.reset();dialog.close();activateTab('anamneza');document.querySelector('#anamnesis-form').scrollIntoView({behavior:'smooth',block:'start'});
 });
-document.querySelector('.mobile-menu').addEventListener('click',()=>document.querySelector('.sidebar').classList.toggle('open'));
+const sidebar=document.querySelector('.sidebar');
+const menuButton=document.querySelector('.mobile-menu');
+const menuBackdrop=document.querySelector('.menu-backdrop');
+function setMobileMenu(open){
+  const isOpen=open&&window.matchMedia('(max-width:750px)').matches;
+  sidebar.classList.toggle('open',isOpen);
+  menuBackdrop.hidden=!isOpen;
+  menuButton.setAttribute('aria-expanded',String(isOpen));
+  document.body.classList.toggle('menu-open',isOpen);
+}
+menuButton.addEventListener('click',()=>setMobileMenu(!sidebar.classList.contains('open')));
+document.querySelector('.menu-close').addEventListener('click',()=>setMobileMenu(false));
+menuBackdrop.addEventListener('click',()=>setMobileMenu(false));
+document.addEventListener('keydown',event=>{if(event.key==='Escape')setMobileMenu(false)});
+window.addEventListener('resize',()=>{if(window.innerWidth>750)setMobileMenu(false)});
+setMobileMenu(false);
 
 let allAnamnesis;
 try{allAnamnesis=JSON.parse(localStorage.getItem('kartoteka-anamnesis'))||{}}catch{allAnamnesis={}}

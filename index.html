@@ -4,12 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Kartoteka pacijenata · Dr Kunić</title>
-  <link rel="stylesheet" href="kartoteka.css">
+  <link rel="stylesheet" href="kartoteka.css?v=2">
 </head>
 <body>
   <div class="demo-banner">DEMO PRIKAZ · Podaci su izmišljeni · Ne unosite stvarne podatke pacijenata</div>
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="main-sidebar">
+      <button class="menu-close" type="button" aria-label="Zatvori meni">×</button>
       <a class="app-brand" href="index.html" aria-label="Nazad na web stranicu">
         <img class="brand-mark" src="images/kartoteka-logo.png" alt="Logo ordinacije Dr Kunić Tarik">
         <span><strong>Dr Kunić</strong><small>Ordinacija</small></span>
@@ -26,10 +27,11 @@
         <div><strong>Dr Tarik Kunić</strong><small>Administrator</small></div>
       </div>
     </aside>
+    <div class="menu-backdrop" hidden></div>
 
     <main>
       <header class="topbar">
-        <button class="mobile-menu" type="button" aria-label="Otvori meni">☰</button>
+        <button class="mobile-menu" type="button" aria-label="Otvori meni" aria-controls="main-sidebar" aria-expanded="false">☰</button>
         <div><p class="eyebrow" id="topbar-eyebrow">DNEVNI PREGLED</p><h1 id="topbar-title">Raspored ordinacije</h1></div>
         <div class="top-actions">
           <button class="icon-button" type="button" aria-label="Obavijesti">◌<span></span></button>
@@ -115,7 +117,7 @@
   </div>
 
   <dialog id="patient-dialog"><form id="new-patient-form"><button class="dialog-close" type="button" aria-label="Zatvori">×</button><p class="eyebrow">NOVI ZAPIS</p><h2>Dodaj pacijenta</h2><div class="form-row"><label>Ime i prezime<input name="name" required data-title-case placeholder="npr. Lejla Hadžić"></label><label>Ime oca<input name="father" required data-title-case placeholder="npr. Amir"></label></div><div class="form-row"><label>Telefon<input name="phone" type="tel" required placeholder="+387 61 000 000"></label><label>Datum rođenja (dd.mm.gggg)<input name="birth" type="date" required lang="bs"></label></div><label>E-mail<input name="email" type="text" inputmode="email" value="@gmail.com" placeholder="ime.prezime@gmail.com"></label><label>Adresa<input name="address" data-title-case placeholder="Ulica i grad"></label><label>Medicinska napomena<textarea name="alert" rows="2" placeholder="Alergije, terapija ili važna napomena"></textarea></label><div class="dialog-actions"><button type="button" class="secondary-button dialog-cancel">Odustani</button><button type="submit" class="primary-button">Sačuvaj pacijenta</button></div></form></dialog>
-  <script src="kartoteka.js"></script>
+  <script src="kartoteka.js?v=2"></script>
   <div class="app-toast" id="app-toast" role="status" aria-live="polite"></div>
 </body>
 </html>

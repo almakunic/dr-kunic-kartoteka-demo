@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Kartoteka pacijenata · Dr Kunić</title>
-  <link rel="stylesheet" href="kartoteka.css?v=4">
+  <link rel="stylesheet" href="kartoteka.css?v=5">
 </head>
 <body>
   <div class="demo-banner">DEMO PRIKAZ · Podaci su izmišljeni · Ne unosite stvarne podatke pacijenata</div>
@@ -18,7 +18,7 @@
       <nav class="main-nav" aria-label="Glavna navigacija">
         <a class="active" href="#pocetna"><span>⌂</span> Početna</a>
         <a href="kartoteka.html"><span>♙</span> Kartoteka</a>
-        <a href="#"><span>▣</span> Termini</a>
+        <a href="#online-zahtjevi"><span>▣</span> Termini</a>
         <a href="#lista-cekanja"><span>◷</span> Lista čekanja</a>
         <a href="#"><span>◫</span> Finansije</a>
         <a href="#"><span>⚙</span> Postavke</a>
@@ -42,6 +42,11 @@
 
       <section class="dashboard" id="dashboard">
         <div class="dashboard-heading"><div><p class="eyebrow">DNEVNI PREGLED</p><h2 id="dashboard-date"></h2><p>Pregled termina i dnevnih obaveza ordinacije.</p></div><button class="secondary-button" id="dashboard-today" type="button">Danas</button></div>
+        <section class="card request-inbox" id="online-zahtjevi" aria-labelledby="request-title">
+          <div class="request-heading"><div><p class="eyebrow">ONLINE NARUČIVANJE</p><h3 id="request-title">Zahtjevi za termin</h3><p>Novi zahtjevi s web stranice. Potvrdite ili promijenite termin.</p></div><span class="request-count" id="request-count"></span></div>
+          <div class="request-filters" role="group" aria-label="Filtriranje zahtjeva"><button class="active" type="button" data-request-filter="svi">Svi</button><button type="button" data-request-filter="novi">Novi</button><button type="button" data-request-filter="potvrđeni">Potvrđeni</button><button type="button" data-request-filter="završeni">Završeni</button></div>
+          <div class="request-list" id="request-list"></div>
+        </section>
         <div class="dashboard-grid"><article class="card calendar-card"><div class="calendar-toolbar"><button id="calendar-prev" type="button" aria-label="Prethodni mjesec">‹</button><h3 id="calendar-month"></h3><button id="calendar-next" type="button" aria-label="Sljedeći mjesec">›</button></div><div class="calendar-weekdays"><span>Pon</span><span>Uto</span><span>Sri</span><span>Čet</span><span>Pet</span><span>Sub</span><span>Ned</span></div><div class="calendar-days" id="calendar-days"></div></article><aside class="card day-agenda"><div class="card-heading"><h3>Termini</h3><span id="agenda-count"></span></div><div id="agenda-list"></div><button class="primary-button agenda-add" id="add-appointment" type="button">+ Novi termin</button><p class="calendar-note">Demo termini čuvaju se samo u ovom pregledniku.</p></aside></div>
         <article class="daily-message"><div><span>✦</span><p class="eyebrow">MISAO ZA DAN</p><strong id="daily-message-text"></strong></div><button id="next-daily-message" type="button">Nova poruka ↻</button></article>
         <div class="dashboard-grid lower"><article class="card daily-notes"><div class="card-heading"><h3>Napomene za dan</h3><button id="save-day-note" type="button">Sačuvaj</button></div><textarea id="day-note" rows="6" placeholder="Važne napomene za današnji rad, pacijente ili organizaciju…"></textarea><span id="day-note-state"></span></article><article class="card task-card"><div class="card-heading"><h3>Dnevne obaveze</h3><span id="task-progress"></span></div><form id="task-form"><input id="task-input" maxlength="100" placeholder="Dodaj obavezu…"><button class="primary-button" type="submit">Dodaj</button></form><div class="task-list" id="task-list"></div></article></div>
@@ -119,8 +124,8 @@
   </div>
 
   <dialog id="patient-dialog"><form id="new-patient-form"><button class="dialog-close" type="button" aria-label="Zatvori">×</button><p class="eyebrow">NOVI ZAPIS</p><h2>Dodaj pacijenta</h2><div class="form-row"><label>Ime i prezime<input name="name" required data-title-case placeholder="npr. Lejla Hadžić"></label><label>Ime oca<input name="father" required data-title-case placeholder="npr. Amir"></label></div><div class="form-row"><label>Telefon<input name="phone" type="tel" required placeholder="+387 61 000 000"></label><label>Datum rođenja (dd.mm.gggg)<input name="birth" type="date" required lang="bs"></label></div><label>E-mail<input name="email" type="text" inputmode="email" value="@gmail.com" placeholder="ime.prezime@gmail.com"></label><label>Adresa<input name="address" data-title-case placeholder="Ulica i grad"></label><label>Medicinska napomena<textarea name="alert" rows="2" placeholder="Alergije, terapija ili važna napomena"></textarea></label><div class="dialog-actions"><button type="button" class="secondary-button dialog-cancel">Odustani</button><button type="submit" class="primary-button">Sačuvaj pacijenta</button></div></form></dialog>
-  <dialog id="appointment-dialog"><form id="appointment-form"><button class="dialog-close appointment-close" type="button" aria-label="Zatvori">×</button><p class="eyebrow">RASPORED ORDINACIJE</p><h2>Novi termin</h2><label>Pacijent<input name="name" required maxlength="80" list="appointment-patients" placeholder="Ime i prezime"></label><datalist id="appointment-patients"></datalist><div class="form-row"><label>Datum<input name="date" type="date" required></label><label>Vrijeme<input name="time" type="time" required></label></div><div class="form-row"><label>Trajanje<select name="duration"><option value="30">30 minuta</option><option value="45">45 minuta</option><option value="60">60 minuta</option></select></label><label>Vrsta posjete<input name="type" required maxlength="80" placeholder="npr. kontrolni pregled"></label></div><p class="form-error" id="appointment-error" role="alert"></p><div class="dialog-actions"><button class="secondary-button appointment-cancel" type="button">Odustani</button><button class="primary-button" type="submit">Sačuvaj termin</button></div></form></dialog>
-  <script src="kartoteka.js?v=4"></script>
+  <dialog id="appointment-dialog"><form id="appointment-form"><button class="dialog-close appointment-close" type="button" aria-label="Zatvori">×</button><p class="eyebrow">RASPORED ORDINACIJE</p><h2>Novi termin</h2><p class="request-dialog-note" id="request-dialog-note" hidden></p><label>Pacijent<input name="name" required maxlength="80" list="appointment-patients" placeholder="Ime i prezime"></label><datalist id="appointment-patients"></datalist><div class="form-row"><label>Datum<input name="date" type="date" required></label><label>Vrijeme<input name="time" type="time" required></label></div><div class="form-row"><label>Trajanje<select name="duration"><option value="30">30 minuta</option><option value="45">45 minuta</option><option value="60">60 minuta</option></select></label><label>Vrsta posjete<input name="type" required maxlength="80" placeholder="npr. kontrolni pregled"></label></div><p class="form-error" id="appointment-error" role="alert"></p><div class="dialog-actions"><button class="secondary-button appointment-cancel" type="button">Odustani</button><button class="primary-button" type="submit">Sačuvaj termin</button></div></form></dialog>
+  <script src="kartoteka.js?v=5"></script>
   <div class="app-toast" id="app-toast" role="status" aria-live="polite"></div>
 </body>
 </html>

@@ -12,14 +12,24 @@ function editCurrentPatient(){const patient=patients.find(item=>item.id===select
 document.addEventListener('DOMContentLoaded',()=>{renderTreatments();document.querySelectorAll('.contact-card .card-heading button,.record-actions .secondary-button').forEach(button=>button.addEventListener('click',editCurrentPatient));document.querySelector('.icon-button').addEventListener('click',()=>showToast('Nema novih obavijesti.'));document.querySelector('.more-button').addEventListener('click',()=>showToast(`Otvoren je zapis pacijenta #${selected}.`));document.querySelector('.next-visit .card-heading button').addEventListener('click',()=>{openAppointmentDialog();const form=document.querySelector('#appointment-form');form.elements.namedItem('name').value=patients.find(item=>item.id===selected)?.name||'';form.dataset.patientId=selected});document.querySelector('.treatment-list').closest('.card').querySelector('.card-heading button').addEventListener('click',addTreatment);document.querySelector('.timeline').closest('.card').querySelector('.card-heading button').addEventListener('click',()=>{activateTab('posjete');showToast('Otvorena je puna historija posjeta.')});document.querySelectorAll('.main-nav a').forEach((link,index)=>link.addEventListener('click',event=>{if(index===1)return;event.preventDefault();if(index===0){activateTab('pregled');showToast('Prikazan je pregled pacijenta.')}else if(index===2){activateTab('posjete');showToast('Prikazani su termini i posjete pacijenta.')}else if(index===3){activateTab('zubi');showToast('Finansije po zahvatu dostupne su uz status zuba.')}else showToast('Postavke će biti dostupne nakon povezivanja sa sigurnim serverom.')}));});
 
 let dashboardDay=new Date(),dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);
-function loadDemoArray(key){try{const value=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
+function loadDemoArray(key,fallback=[]){try{const saved=localStorage.getItem(key);if(saved===null)return JSON.parse(JSON.stringify(fallback));const value=JSON.parse(saved);return Array.isArray(value)?value:[]}catch{return JSON.parse(JSON.stringify(fallback))}}
+function demoFutureDate(offset){const date=new Date();date.setDate(date.getDate()+offset);return dateKey(date)}
 const dashboardAppointments=loadDemoArray('kartoteka-appointments');
 const waitingEntries=loadDemoArray('kartoteka-waiting-list');
+const defaultOnlineRequests=[
+  {id:'web-demo-1',name:'Selma Bećirović',phone:'+387 61 222 345',email:'',service:'Opći stomatološki pregled',date:demoFutureDate(2),time:'11:00',confirmationMethod:'WhatsApp',note:'Prvi pregled.',status:'Novi',createdAt:new Date().toISOString()},
+  {id:'web-demo-2',name:'Adnan Šabić',phone:'+387 62 418 720',email:'adnan.sabic@example.com',service:'Kontrolni pregled',date:demoFutureDate(3),time:'15:00',confirmationMethod:'E-mail',note:'Kontrola nakon terapije.',status:'Novi',createdAt:new Date().toISOString()},
+  {id:'web-demo-3',name:'Mina Kovačević',phone:'+387 60 310 988',email:'',service:'Preventivna stomatologija',date:demoFutureDate(5),time:'10:00',confirmationMethod:'SMS poruka',note:'',status:'Novi',createdAt:new Date().toISOString()}
+];
+const onlineRequests=loadDemoArray('kartoteka-online-requests',defaultOnlineRequests);
+let requestFilter='svi';
+const dashboardMonths=['januar','februar','mart','april','maj','juni','juli','august','septembar','oktobar','novembar','decembar'];
+const dashboardWeekdays=['nedjelja','ponedjeljak','utorak','srijeda','četvrtak','petak','subota'];
 const dailyMessages=['Jedan pažljiv pregled može nekome promijeniti cijeli dan.','Strpljenje, preciznost i osmijeh uvijek ostavljaju trag.','Mali koraci svaki dan donose veliku razliku.','Dobar rad počinje dobrom pripremom.','Vaša stručnost pacijentu donosi sigurnost.','Najbolji rezultat dolazi iz pažnje prema svakom detalju.','Neka današnji rad bude razlog za nečiji mirniji osmijeh.','Organizovan dan ostavlja više prostora za ono važno.','Kvalitet se gradi jednim pažljivo urađenim korakom.','Svaka zdrava navika počinje jednim dobrim savjetom.'];
 let dailyMessageIndex;
 function dateKey(date){const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);return local.toISOString().slice(0,10)}
 function renderDailyMessage(index){const key=`kartoteka-daily-message-${dateKey(dashboardDay)}`;if(Number.isInteger(index))dailyMessageIndex=index%dailyMessages.length;else{const saved=Number(localStorage.getItem(key));dailyMessageIndex=Number.isInteger(saved)&&saved>=0&&saved<dailyMessages.length?saved:Math.abs([...dateKey(dashboardDay)].reduce((total,char)=>total+char.charCodeAt(0),0))%dailyMessages.length}localStorage.setItem(key,String(dailyMessageIndex));document.querySelector('#daily-message-text').textContent=dailyMessages[dailyMessageIndex]}
-function formatDashboardDate(date){return date.toLocaleDateString('bs-BA',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
+function formatDashboardDate(date){return `${dashboardWeekdays[date.getDay()]}, ${String(date.getDate()).padStart(2,'0')}. ${dashboardMonths[date.getMonth()]} ${date.getFullYear()}.`}
 function getDayTasks(){const key=`kartoteka-day-tasks-${dateKey(dashboardDay)}`;try{return JSON.parse(localStorage.getItem(key))||[{text:'Pozivi pacijentima',done:false},{text:'Naručivanje robe',done:false},{text:'Čišćenje i sterilizacija',done:false}]}catch{return []}}
 function saveDayTasks(tasks){localStorage.setItem(`kartoteka-day-tasks-${dateKey(dashboardDay)}`,JSON.stringify(tasks))}
 function renderTasks(){const tasks=getDayTasks(),target=document.querySelector('#task-list');target.innerHTML=tasks.map((task,index)=>`<label class="task-item"><input type="checkbox" data-task="${index}" ${task.done?'checked':''}><span>${escapeHtml(task.text)}</span><button type="button" data-remove-task="${index}" aria-label="Ukloni obavezu">×</button></label>`).join('')||'<p class="empty-tasks">Nema obaveza za ovaj dan.</p>';document.querySelector('#task-progress').textContent=tasks.length?`${tasks.filter(task=>task.done).length}/${tasks.length} završeno`:''}
@@ -31,11 +41,11 @@ function renderAgenda(){
   target.innerHTML=items.length?items.map(item=>`<div class="agenda-item"><time>${escapeHtml(item.time)}</time><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.type)} · ${Number(item.duration)||30} min</span><select aria-label="Status termina za ${escapeHtml(item.name)}" data-appointment-status="${escapeHtml(item.id)}">${statuses.map(status=>`<option ${item.status===status?'selected':''}>${status}</option>`).join('')}</select></div></div>`).join(''):'<p class="empty-tasks">Nema upisanih termina.</p>';
   document.querySelector('#agenda-count').textContent=items.length?`${items.length} termina`:'';
 }
-function renderCalendar(){const firstDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),1),lastDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,0),start=(firstDay.getDay()+6)%7,days=[];document.querySelector('#calendar-month').textContent=dashboardMonth.toLocaleDateString('bs-BA',{month:'long',year:'numeric'});for(let index=0;index<start;index++)days.push('<span class="calendar-empty"></span>');for(let day=1;day<=lastDay.getDate();day++){const value=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),day),key=dateKey(value),hasEvents=dashboardAppointments.some(item=>item.date===key&&item.status!=='Otkazan'),classes=[dateKey(value)===dateKey(dashboardDay)?'selected':'',dateKey(value)===dateKey(new Date())?'today':'',hasEvents?'has-event':''].filter(Boolean).join(' ');days.push(`<button class="${classes}" data-calendar-date="${key}" type="button">${day}</button>`)}document.querySelector('#calendar-days').innerHTML=days.join('')}
-function renderDashboard(){document.querySelector('#dashboard-date').textContent=formatDashboardDate(dashboardDay);renderCalendar();renderAgenda();renderWaitlist();renderTasks();renderDayNote();renderDailyMessage()}
+function renderCalendar(){const firstDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),1),lastDay=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,0),start=(firstDay.getDay()+6)%7,days=[];document.querySelector('#calendar-month').textContent=`${dashboardMonths[dashboardMonth.getMonth()]} ${dashboardMonth.getFullYear()}.`;for(let index=0;index<start;index++)days.push('<span class="calendar-empty"></span>');for(let day=1;day<=lastDay.getDate();day++){const value=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth(),day),key=dateKey(value),hasEvents=dashboardAppointments.some(item=>item.date===key&&item.status!=='Otkazan'),classes=[dateKey(value)===dateKey(dashboardDay)?'selected':'',dateKey(value)===dateKey(new Date())?'today':'',hasEvents?'has-event':''].filter(Boolean).join(' ');days.push(`<button class="${classes}" data-calendar-date="${key}" type="button">${day}</button>`)}document.querySelector('#calendar-days').innerHTML=days.join('')}
+function renderDashboard(){document.querySelector('#dashboard-date').textContent=formatDashboardDate(dashboardDay);renderOnlineRequests();renderCalendar();renderAgenda();renderWaitlist();renderTasks();renderDayNote();renderDailyMessage()}
 function showDashboard(navIndex=0){document.querySelector('#dashboard').hidden=false;document.querySelector('#workspace').hidden=true;document.querySelector('#new-patient').hidden=true;document.querySelector('#topbar-eyebrow').textContent='DNEVNI PREGLED';document.querySelector('#topbar-title').textContent='Raspored ordinacije';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===navIndex));renderDashboard()}
 function showWorkspace(){document.querySelector('#dashboard').hidden=true;document.querySelector('#workspace').hidden=false;document.querySelector('#new-patient').hidden=false;document.querySelector('#topbar-eyebrow').textContent='E-KARTOTEKA';document.querySelector('#topbar-title').textContent='Pacijenti';document.querySelectorAll('.main-nav a').forEach((link,index)=>link.classList.toggle('active',index===1))}
-document.querySelector('.main-nav').addEventListener('click',event=>{const link=event.target.closest('a');if(!link)return;setMobileMenu(false);const links=[...document.querySelectorAll('.main-nav a')],index=links.indexOf(link);if(index<=4){event.preventDefault();event.stopPropagation();if(index===0)showDashboard();if(index===1)showWorkspace();if(index===2){showDashboard(2);document.querySelector('.calendar-card').scrollIntoView({behavior:'smooth',block:'start'})}if(index===3){showDashboard(3);document.querySelector('#lista-cekanja').scrollIntoView({behavior:'smooth',block:'start'})}if(index===4){showWorkspace();activateTab('zubi')}}},true);
+document.querySelector('.main-nav').addEventListener('click',event=>{const link=event.target.closest('a');if(!link)return;setMobileMenu(false);const links=[...document.querySelectorAll('.main-nav a')],index=links.indexOf(link);if(index<=4){event.preventDefault();event.stopPropagation();if(index===0)showDashboard();if(index===1)showWorkspace();if(index===2){showDashboard(2);document.querySelector('#online-zahtjevi').scrollIntoView({behavior:'smooth',block:'start'})}if(index===3){showDashboard(3);document.querySelector('#lista-cekanja').scrollIntoView({behavior:'smooth',block:'start'})}if(index===4){showWorkspace();activateTab('zubi')}}},true);
 document.querySelector('#calendar-prev').addEventListener('click',()=>{dashboardMonth=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()-1,1);renderCalendar()});
 document.querySelector('#calendar-next').addEventListener('click',()=>{dashboardMonth=new Date(dashboardMonth.getFullYear(),dashboardMonth.getMonth()+1,1);renderCalendar()});
 document.querySelector('#dashboard-today').addEventListener('click',()=>{dashboardDay=new Date();dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);renderDashboard()});
@@ -242,6 +252,39 @@ document.querySelector('#tooth-note').addEventListener('input',event=>{if(!selec
 
 function saveAppointments(){localStorage.setItem('kartoteka-appointments',JSON.stringify(dashboardAppointments))}
 function saveWaitingEntries(){localStorage.setItem('kartoteka-waiting-list',JSON.stringify(waitingEntries))}
+function saveOnlineRequests(){localStorage.setItem('kartoteka-online-requests',JSON.stringify(onlineRequests))}
+function requestDateLabel(request){const date=new Date(`${request.date}T12:00:00`);return `${dashboardWeekdays[date.getDay()].slice(0,3)}, ${String(date.getDate()).padStart(2,'0')}.${String(date.getMonth()+1).padStart(2,'0')}. u ${request.time}`}
+function appointmentConflict(date,time,duration,ignoredId=''){const start=minutesFromTime(time),end=start+Number(duration);return dashboardAppointments.some(item=>item.id!==ignoredId&&item.date===date&&item.status!=='Otkazan'&&start<minutesFromTime(item.time)+(Number(item.duration)||30)&&end>minutesFromTime(item.time))}
+function requestMatchesFilter(request){if(requestFilter==='novi')return request.status==='Novi';if(requestFilter==='potvrđeni')return request.status==='Potvrđen';if(requestFilter==='završeni')return ['Odbijen','Otkazan online'].includes(request.status);return true}
+function renderOnlineRequests(){
+  const target=document.querySelector('#request-list');
+  if(!target)return;
+  const statusOrder={Novi:0,'Potvrđen':1,'Otkazan online':2,Odbijen:3};
+  const requests=[...onlineRequests].filter(requestMatchesFilter).sort((a,b)=>(statusOrder[a.status]??9)-(statusOrder[b.status]??9)||a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const newCount=onlineRequests.filter(item=>item.status==='Novi').length;
+  document.querySelector('#request-count').textContent=newCount?`${newCount} nova`:'Nema novih';
+  document.querySelector('.icon-button span').hidden=newCount===0;
+  target.innerHTML=requests.length?requests.map(request=>{
+    const contact=[request.phone,request.email].filter(Boolean).join(' · ');
+    const note=request.note?`<p class="request-note">${escapeHtml(request.note)}</p>`:'';
+    const actions=request.status==='Novi'
+      ? `<button class="request-confirm" type="button" data-request-action="confirm" data-request-id="${escapeHtml(request.id)}">Potvrdi</button><button type="button" data-request-action="change" data-request-id="${escapeHtml(request.id)}">Promijeni termin</button><button type="button" data-request-action="reject" data-request-id="${escapeHtml(request.id)}">Odbij</button>`
+      : request.status==='Potvrđen'
+        ? `<button type="button" data-request-action="open-date" data-request-id="${escapeHtml(request.id)}">Prikaži u kalendaru</button><button class="request-cancel" type="button" data-request-action="cancel" data-request-id="${escapeHtml(request.id)}">Otkazano online</button>`
+        : '';
+    return `<article class="request-item"><div class="request-main"><div class="request-person"><strong>${escapeHtml(request.name)}</strong><span>${escapeHtml(contact)}</span></div><span class="request-status status-${escapeHtml(request.status.toLowerCase().replaceAll(' ','-'))}">${escapeHtml(request.status)}</span><h4>${escapeHtml(request.service)}</h4><p class="request-time">${escapeHtml(requestDateLabel(request))} · potvrda: ${escapeHtml(request.confirmationMethod)}</p>${note}</div><div class="request-actions">${actions}</div></article>`
+  }).join(''):'<p class="empty-tasks">Nema zahtjeva u ovoj grupi.</p>';
+}
+function appointmentFromRequest(request,date=request.date,time=request.time,duration=60){
+  const matchingPatient=patients.find(patient=>patient.name.toLowerCase()===request.name.toLowerCase());
+  const appointment={id:crypto.randomUUID(),patientId:matchingPatient?.id||'',requestId:request.id,name:request.name,date,time,duration:Number(duration),type:request.service,status:'Potvrđen'};
+  dashboardAppointments.push(appointment);
+  request.status='Potvrđen';request.appointmentId=appointment.id;request.confirmedAt=new Date().toISOString();request.date=date;request.time=time;
+  saveAppointments();saveOnlineRequests();
+  dashboardDay=new Date(`${date}T12:00:00`);dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);
+  renderDashboard();renderNextVisit();
+  showToast(`Termin je potvrđen. Pacijenta kontaktirati putem: ${request.confirmationMethod}.`);
+}
 function renderWaitlist(){
   const target=document.querySelector('#waiting-list');
   const entries=[...waitingEntries].sort((a,b)=>(a.status==='Čeka'?0:a.status==='Pozvano'?1:2)-(b.status==='Čeka'?0:b.status==='Pozvano'?1:2)||Number(b.priority==='hitno')-Number(a.priority==='hitno'));
@@ -249,17 +292,22 @@ function renderWaitlist(){
   target.innerHTML=entries.length?entries.map(item=>`<article class="waiting-item"><div><strong>${escapeHtml(item.name)}</strong><p>${escapeHtml(item.reason)}</p><div class="waiting-tags"><span class="waiting-status">${escapeHtml(item.status)}</span>${item.priority==='hitno'?'<span class="waiting-urgent">Hitno</span>':''}</div></div><div class="waiting-actions">${item.status==='Čeka'?`<button type="button" data-waiting-action="call" data-waiting-id="${escapeHtml(item.id)}">Pozvano</button>`:''}${['Čeka','Pozvano'].includes(item.status)?`<button type="button" data-waiting-action="schedule" data-waiting-id="${escapeHtml(item.id)}">Zakaži</button><button type="button" data-waiting-action="resolve" data-waiting-id="${escapeHtml(item.id)}">Riješeno</button>`:''}</div></article>`).join(''):'<p class="empty-tasks">Lista čekanja je prazna.</p>';
 }
 function minutesFromTime(time){const [hours,minutes]=String(time).split(':').map(Number);return hours*60+minutes}
-function openAppointmentDialog(waitingId=''){
+function openAppointmentDialog(waitingId='',requestId=''){
   const form=document.querySelector('#appointment-form');
   form.reset();
   form.dataset.waitingId=waitingId;
+  form.dataset.requestId=requestId;
   form.dataset.patientId='';
   form.elements.date.value=dateKey(dashboardDay);
   form.elements.time.value='09:00';
   document.querySelector('#appointment-error').textContent='';
+  const requestNote=document.querySelector('#request-dialog-note');
+  requestNote.hidden=true;requestNote.textContent='';
   document.querySelector('#appointment-patients').innerHTML=patients.map(patient=>`<option value="${escapeHtml(patient.name)}"></option>`).join('');
   const waiting=waitingEntries.find(item=>item.id===waitingId);
   if(waiting){form.elements.name.value=waiting.name;form.elements.type.value=waiting.reason}
+  const request=onlineRequests.find(item=>item.id===requestId);
+  if(request){form.elements.name.value=request.name;form.elements.date.value=request.date;form.elements.time.value=request.time;form.elements.duration.value='60';form.elements.type.value=request.service;requestNote.hidden=false;requestNote.textContent=`Online zahtjev · potvrda putem ${request.confirmationMethod}. Sačuvani termin će zamijeniti traženo vrijeme.`}
   document.querySelector('#appointment-dialog').showModal();
 }
 document.querySelector('#add-appointment').addEventListener('click',()=>openAppointmentDialog());
@@ -267,9 +315,15 @@ document.querySelector('.appointment-close').addEventListener('click',()=>docume
 document.querySelector('.appointment-cancel').addEventListener('click',()=>document.querySelector('#appointment-dialog').close());
 document.querySelector('#appointment-form').addEventListener('submit',event=>{
   event.preventDefault();
-  const form=event.currentTarget,data=Object.fromEntries(new FormData(form)),start=minutesFromTime(data.time),end=start+Number(data.duration);
-  const conflict=dashboardAppointments.some(item=>item.date===data.date&&item.status!=='Otkazan'&&start<minutesFromTime(item.time)+(Number(item.duration)||30)&&end>minutesFromTime(item.time));
+  const form=event.currentTarget,data=Object.fromEntries(new FormData(form));
+  const conflict=appointmentConflict(data.date,data.time,data.duration);
   if(conflict){document.querySelector('#appointment-error').textContent='U ovom vremenu već postoji termin. Odaberite drugo vrijeme.';return}
+  const onlineRequest=onlineRequests.find(item=>item.id===form.dataset.requestId);
+  if(onlineRequest){
+    appointmentFromRequest(onlineRequest,data.date,data.time,data.duration);
+    form.closest('dialog').close();
+    return;
+  }
   const matchingPatient=patients.find(patient=>patient.name.toLowerCase()===data.name.trim().toLowerCase());
   const appointment={id:crypto.randomUUID(),patientId:form.dataset.patientId||matchingPatient?.id||'',name:data.name.trim(),date:data.date,time:data.time,duration:Number(data.duration),type:data.type.trim(),status:'Zakazan'};
   dashboardAppointments.push(appointment);
@@ -290,6 +344,8 @@ document.querySelector('#agenda-list').addEventListener('change',event=>{
   if(field.value==='Otkazan'){
     const waiting=waitingEntries.find(item=>item.appointmentId===appointment.id);
     if(waiting){waiting.status='Čeka';delete waiting.appointmentId;saveWaitingEntries();renderWaitlist()}
+    const request=onlineRequests.find(item=>item.appointmentId===appointment.id);
+    if(request){request.status='Otkazan online';request.cancelledAt=new Date().toISOString();saveOnlineRequests();renderOnlineRequests()}
   }
   renderAgenda();renderCalendar();renderNextVisit();
 });
@@ -306,3 +362,23 @@ document.querySelector('#waiting-list').addEventListener('click',event=>{
   entry.status=button.dataset.waitingAction==='call'?'Pozvano':'Riješeno';
   saveWaitingEntries();renderWaitlist();
 });
+document.querySelector('.request-filters').addEventListener('click',event=>{
+  const button=event.target.closest('[data-request-filter]');if(!button)return;
+  requestFilter=button.dataset.requestFilter;
+  document.querySelectorAll('[data-request-filter]').forEach(item=>item.classList.toggle('active',item===button));
+  renderOnlineRequests();
+});
+document.querySelector('#request-list').addEventListener('click',event=>{
+  const button=event.target.closest('[data-request-action]');if(!button)return;
+  const request=onlineRequests.find(item=>item.id===button.dataset.requestId);if(!request)return;
+  if(button.dataset.requestAction==='open-date'){dashboardDay=new Date(`${request.date}T12:00:00`);dashboardMonth=new Date(dashboardDay.getFullYear(),dashboardDay.getMonth(),1);renderDashboard();document.querySelector('.calendar-card').scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(button.dataset.requestAction==='change'){openAppointmentDialog('',request.id);return}
+  if(button.dataset.requestAction==='confirm'){
+    if(appointmentConflict(request.date,request.time,60)){openAppointmentDialog('',request.id);document.querySelector('#appointment-error').textContent='Traženi termin se preklapa s postojećim. Odaberite drugo vrijeme.';return}
+    appointmentFromRequest(request);return;
+  }
+  if(button.dataset.requestAction==='reject'){request.status='Odbijen';request.resolvedAt=new Date().toISOString();showToast(`Zahtjev je odbijen. Pacijenta obavijestiti putem: ${request.confirmationMethod}.`)}
+  if(button.dataset.requestAction==='cancel'){request.status='Otkazan online';request.cancelledAt=new Date().toISOString();const appointment=dashboardAppointments.find(item=>item.id===request.appointmentId);if(appointment){appointment.status='Otkazan';saveAppointments()}showToast('Otkazivanje je evidentirano i termin je oslobođen.')}
+  saveOnlineRequests();renderDashboard();renderNextVisit();
+});
+document.querySelector('.icon-button').onclick=()=>{showDashboard(2);document.querySelector('#online-zahtjevi').scrollIntoView({behavior:'smooth',block:'start'});const count=onlineRequests.filter(item=>item.status==='Novi').length;showToast(count?`Imate ${count} nova online zahtjeva.`:'Nema novih online zahtjeva.')};

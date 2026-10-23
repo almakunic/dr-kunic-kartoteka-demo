@@ -29,3 +29,10 @@ dialog textarea{width:100%;margin-top:6px;padding:11px;border:1px solid var(--li
   .menu-backdrop:not([hidden]){position:fixed;inset:0;z-index:19;display:block;background:#17332f80}
   body.menu-open{overflow:hidden}
 }
+@media(max-width:750px){
+  .sidebar{padding:27px 18px 20px}
+  .app-brand>span:last-child{display:block;font-size:inherit}
+  .main-nav a,.main-nav a.active,.main-nav a:not(.active){justify-content:flex-start;padding:12px 14px;font-size:14px}
+  .sidebar-footer{display:grid;justify-content:initial}
+  .sidebar-footer>div:last-child{display:block}
+}
